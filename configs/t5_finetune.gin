@@ -1,0 +1,71 @@
+# Defaults for full model finetuning.
+#
+# See go/t5x-finetune for instructions.
+#
+# You must also include a binding for MODEL
+#
+# Required to be set:
+#
+# - MIXTURE_OR_TASK_NAME
+# - TASK_FEATURE_LENGTHS
+# - TRAIN_STEPS  # includes pretrain steps
+# - MODEL_DIR  # automatically set when using xm_launch
+# - INITIAL_CHECKPOINT_PATH
+#
+# When launching on XManager, `MODEL_DIR` (the directory to write fine-tuned
+# checkpoints to) is configured automatically by the XManager launch script.
+# When running locally, it needs to be passed in the `gin.MODEL_DIR` flag.
+#
+# `TRAIN_STEPS` should include pre-training steps, e.g., if pre-trained ckpt
+# has 1M steps, TRAIN_STEPS = 1.1M will perform 0.1M fine-tuning steps.
+#
+# Commonly overridden options:
+# - DROPOUT_RATE
+# - BATCH_SIZE
+# - PjitPartitioner.num_partitions
+# - Trainer.num_microbatches
+# - USE_CACHED_TASKS: Whether to look for preprocessed SeqIO data, or preprocess
+#    on the fly. Most common tasks are cached, hence this is set to True by
+#    default.
+from __gin__ import dynamic_registration
+import seqio
+from t5x import models
+from t5x import utils
+from t5x import adafactor
+from t5x import optimizers as optim
+
+# ========== These are HPs you might want to override ==========
+# If you want to change the actual optimizer itself (to optim.Adam, etc), make
+# sure to update the optimizer that is passed to the MultiOptimizer.
+OPTIMIZER = @adafactor.Adafactor()
+adafactor.Adafactor:
+  decay_rate = 0.8
+  step_offset = 0
+  logical_factor_rules = @adafactor.standard_logical_factor_rules()
+
+utils.create_learning_rate_scheduler:
+  factors = "constant"
+  # Learning rate from the paper.
+  base_learning_rate = 1e-3
+
+# ========== From T5X configs ==========
+# These are copied over excluding because the order of things can
+# get confusing.
+
+# Loss HParam defaults These come from T5X examples
+Z_LOSS = 0.0001
+LABEL_SMOOTHING = 0.0
+# NOTE: When fine-tuning the public checkpoints (trained in T5 MeshTF)
+# the loss normalizing factor should be set to 1024 * 229 (pretraining
+# batch_size * target_token_length).
+LOSS_NORMALIZING_FACTOR = None
+
+train_script.train:
+  train_dataset_cfg = @train/utils.DatasetConfig()
+  train_eval_dataset_cfg = @train_eval/utils.DatasetConfig()
+  infer_eval_dataset_cfg = @infer_eval/utils.DatasetConfig()
+
+seqio.Evaluator:
+  logger_cls = [@seqio.PyLoggingLogger, @seqio.TensorBoardLogger, @seqio.JSONLogger]
+  num_examples = None  # Use all examples in the dataset.
+  use_memory_cache = True
