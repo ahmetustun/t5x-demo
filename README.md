@@ -8,11 +8,11 @@
 
 #### Example scripts
 
-Fine-tuning T5 for sst2
+Fine-tuning T5 for Sst2
 
     bash scripts/t5-sst2-demo.sh gs://your-bucket/path/to/model_dir gs://your-bucket/path/to/tfds/cache"
 
-Fine-tuning mT5 xnli
+Fine-tuning mT5 for Xnli
 
     bash scripts/mt5-xnli-demo.sh gs://your-bucket/path/to/model_dir gs://your-bucket/path/to/tfds/cache"
 
