@@ -34,7 +34,7 @@ setuptools.setup(
         "seqio-nightly",
         "t5",
         "tensorflow",
-        "tensorflow_datasets",
+        "tensorflow_datasets==4.8.2",
         "datasets",
         "promptsource",
         # Install from git as they have setup.pys but are not on PyPI.
