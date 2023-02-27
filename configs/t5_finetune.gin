@@ -28,6 +28,7 @@
 #    on the fly. Most common tasks are cached, hence this is set to True by
 #    default.
 from __gin__ import dynamic_registration
+import __main__ as t5x_train
 import seqio
 from t5x import models
 from t5x import utils
@@ -60,7 +61,7 @@ LABEL_SMOOTHING = 0.0
 # batch_size * target_token_length).
 LOSS_NORMALIZING_FACTOR = None
 
-train_script.train:
+t5x_train.train:
   train_dataset_cfg = @train/utils.DatasetConfig()
   train_eval_dataset_cfg = @train_eval/utils.DatasetConfig()
   infer_eval_dataset_cfg = @infer_eval/utils.DatasetConfig()
